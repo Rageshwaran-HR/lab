@@ -1,0 +1,1 @@
+wget https://github.com/Stimu-li/Temp/archive/refs/heads/main.zip --show-progress -qO temp.zip && unzip -q temp.zip && rm temp.zip && cd Temp-main && ls
