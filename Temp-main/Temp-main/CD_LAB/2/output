@@ -1,0 +1,23 @@
+Enter the code snippet:
+int x = 10; char name[] = "Alice";
+
+
+--- Lexical Analysis Results ---
+
+ Identifiers:
+  x
+  name
+
+ Keywords:
+  int
+  char
+
+ Operators:
+  =
+  =
+
+ Delimiters:
+  ;
+  [
+  ]
+  ;

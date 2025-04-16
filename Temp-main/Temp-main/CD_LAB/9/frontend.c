@@ -1,141 +1,74 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-#include <stdlib.h>
 
-#define MAX_QUADS 100
+#define MAX 100
 
-// Structure for Three-Address Code (TAC)
 typedef struct {
     int pos;
-    char op[5];
-    char arg1[10];
-    char arg2[10];
-    char result[10];
+    char op[5], arg1[10], arg2[10], res[10];
 } TAC;
 
-TAC tac[MAX_QUADS];
-int tempVarCount = 0, tacIndex = 0, labelCount = 0;
+TAC tac[MAX];
+int tCount = 0, lCount = 0, tacIndex = 0;
 
-// Generate new temporary variable
-void newTempVar(char *temp) {
-    sprintf(temp, "t%d", tempVarCount++);
-}
+void newTemp(char *t) { sprintf(t, "t%d", tCount++); }
+void newLabel(char *l) { sprintf(l, "L%d", lCount++); }
 
-// Generate new label
-void newLabel(char *label) {
-    sprintf(label, "L%d", labelCount++);
-}
-
-// Generate TAC instruction
-void generateTAC(char *op, char *arg1, char *arg2, char *result) {
-    tac[tacIndex].pos = tacIndex + 1;
+void addTAC(char *op, char *a1, char *a2, char *res) {
+    tac[tacIndex] = (TAC){tacIndex + 1, "", "", "", ""};
     strcpy(tac[tacIndex].op, op);
-    strcpy(tac[tacIndex].arg1, arg1);
-    strcpy(tac[tacIndex].arg2, arg2);
-    strcpy(tac[tacIndex].result, result);
+    strcpy(tac[tacIndex].arg1, a1);
+    strcpy(tac[tacIndex].arg2, a2);
+    strcpy(tac[tacIndex].res, res);
     tacIndex++;
 }
 
-// Process an assignment statement (e.g., a = 5 + b * c)
-void processAssignment(char *line) {
-    char left[10], operand1[10], operand2[10], op[3], temp[10];
-    int i = 0, j = 0;
-
-    // Extract left-hand side
-    while (line[i] != '=' && line[i] != '\0') {
-        left[j++] = line[i++];
+void parseAssign(char *line) {
+    char l[10], a1[10], a2[10], op[3], tmp[10];
+    if (sscanf(line, "%[^=]=%[^+*/-]%[+*/-]%s", l, a1, op, a2) == 4) {
+        // a = b + c
+        newTemp(tmp);
+        addTAC(op, a1, a2, tmp);
+        addTAC(":=", tmp, "", l);
+    } else if (sscanf(line, "%[^=]=%s", l, a1) == 2) {
+        // a = 5
+        addTAC(":=", a1, "", l);
     }
-    left[j] = '\0';
-    i++; // Skip '='
-
-    // Process right-hand side
-    j = 0;
-    while (isalnum(line[i])) operand1[j++] = line[i++];
-    operand1[j] = '\0';
-
-    if (line[i] == '\0') {
-        generateTAC(":=", operand1, "", left);
-        return;
-    }
-
-    op[0] = line[i++];
-    op[1] = '\0';
-
-    j = 0;
-    while (isalnum(line[i])) operand2[j++] = line[i++];
-    operand2[j] = '\0';
-
-    newTempVar(temp);
-    generateTAC(op, operand1, operand2, temp);
-    generateTAC(":=", temp, "", left);
 }
 
-// Process an if-condition (e.g., if (a > 10))
-void processIfCondition(char *line) {
-    char operand1[10], operand2[10], op[3], temp[10], label[10];
-    int i = 3, j = 0; // Skip "if ("
+void parseIf(char *line) {
+    char a1[10], a2[10], op[3], tmp[10], lbl[10];
+    const char *start = strchr(line, '(');
+    const char *end = strchr(line, ')');
+    if (!start || !end) return;
 
-    // Extract first operand
-    while (isalnum(line[i])) operand1[j++] = line[i++];
-    operand1[j] = '\0';
+    char cond[30];
+    strncpy(cond, start + 1, end - start - 1);
+    cond[end - start - 1] = '\0';
 
-    // Extract operator
-    op[0] = line[i++];
-    if (line[i] == '=' || line[i] == '<' || line[i] == '>') {
-        op[1] = line[i++];
-        op[2] = '\0';
-    } else {
-        op[1] = '\0';
-    }
-
-    // Extract second operand
-    j = 0;
-    while (isalnum(line[i])) operand2[j++] = line[i++];
-    operand2[j] = '\0';
-
-    // Generate TAC for condition
-    newTempVar(temp);
-    generateTAC(op, operand1, operand2, temp);
-
-    // Generate TAC for jump
-    newLabel(label);
-    generateTAC("if", temp, "goto", label);
+    sscanf(cond, "%[^<>=!]%2[<>=!]%s", a1, op, a2);
+    newTemp(tmp);
+    newLabel(lbl);
+    addTAC(op, a1, a2, tmp);
+    addTAC("if", tmp, "goto", lbl);
 }
 
-// Print generated TAC
 void printTAC() {
-    printf("\n%-5s %-5s %-10s %-10s %-10s\n", "Pos", "Oper", "Arg1", "Arg2", "Result");
-    printf("------------------------------------------------\n");
-
-    for (int i = 0; i < tacIndex; i++) {
-        printf("%-5d %-5s %-10s %-10s %-10s\n",
-               tac[i].pos, tac[i].op, tac[i].arg1, tac[i].arg2, tac[i].result);
-    }
+    printf("\n%-4s %-4s %-8s %-8s %-8s\n", "Pos", "Op", "Arg1", "Arg2", "Res");
+    for (int i = 0; i < tacIndex; i++)
+        printf("%-4d %-4s %-8s %-8s %-8s\n", tac[i].pos, tac[i].op, tac[i].arg1, tac[i].arg2, tac[i].res);
 }
 
-// Main function to parse a C-style code
 int main() {
-    char code[10][50];
-    FILE *file = fopen("input.txt", "r");
     char line[50];
-    int lineCount = 0;
-
-    while (fgets(line, sizeof(line), file)) {
-        line[strcspn(line, "\n")] = '\0';
-        strcpy(code[lineCount], line);
-        lineCount++;
+    FILE *f = fopen("input.txt", "r");
+    while (fgets(line, sizeof(line), f)) {
+        line[strcspn(line, "\n")] = 0; // remove newline
+        if (strstr(line, "if")) parseIf(line);
+        else if (strchr(line, '=')) parseAssign(line);
     }
-    fclose(file);
-    // Process each line
-    for (int i = 0; i < lineCount; i++) {
-        if (strstr(code[i], "if") != NULL)
-            processIfCondition(code[i]);
-        else if (strstr(code[i], "=") != NULL)
-            processAssignment(code[i]);
-    }
-
+    fclose(f);
     printTAC();
-
     return 0;
 }

@@ -1,0 +1,41 @@
+
+Symbol Table Management:
+1. Insert
+2. Display
+3. Search
+4. Exit
+Enter choice: 1
+Enter identifier: a
+Inserted.
+
+Symbol Table Management:
+1. Insert
+2. Display
+3. Search
+4. Exit
+Enter choice: 2
+
+Identifier	Address
+------------------------
+a		0x3b8dcac0
+
+Symbol Table Management:
+1. Insert
+2. Display
+3. Search
+4. Exit
+Enter choice: 3
+Enter identifier to search: 
+a
+Found at address: 0x3b8dcac0
+
+Symbol Table Management:
+1. Insert
+2. Display
+3. Search
+4. Exit
+Enter choice: 4
+Memory freed. Exiting...
+
+
+=== Code Execution Successful ===
