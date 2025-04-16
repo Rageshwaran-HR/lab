@@ -1,86 +1,143 @@
-To run `.l`, `.y`, or `.c` files via PuTTY (assuming you're working on a Linux-based system like Ubuntu, Debian, or CentOS), you need to follow these steps:
+Here’s a `README.md` file you can use to explain **how to create and run `.l` and `.y` programs using PuTTY** on a remote Linux system.
 
-### For `.l` files (Lex files):
+---
 
-1. **Install Lex (Flex)**:
-   First, ensure that Flex (or Lex) is installed on your system:
+````markdown
+# Running Lex (.l) and Yacc (.y) Programs Using PuTTY
 
-   ```bash
-   sudo apt-get install flex  # On Ubuntu/Debian
-   sudo yum install flex      # On CentOS/RedHat
-   ```
+This guide walks you through how to create, compile, and run Lex and Yacc programs on a remote Linux system via **PuTTY**.
 
-2. **Generate C Code**:
-   Use `flex` to compile the `.l` file:
+---
 
-   ```bash
-   flex your_file.l
-   ```
+## 🧰 Prerequisites
 
-3. **Compile the C Code**:
-   The above step will create a `lex.yy.c` file. Now, compile this file with a C compiler like `gcc`:
+- A remote Linux server (Ubuntu/Debian-based)
+- PuTTY installed on your Windows machine
+- Lex (Flex), Yacc (Bison), and GCC installed on the server
 
-   ```bash
-   gcc lex.yy.c -o your_program -lfl
-   ```
+---
 
-4. **Run the Program**:
-   After compilation, you can run the program like any other:
-   ```bash
-   ./your_program
-   ```
+## ⚙️ Step 1: Connect via PuTTY
 
-### For `.y` files (Yacc files):
+1. Open PuTTY.
+2. Enter the IP address or hostname of your server.
+3. Login with your **username** and **password** or **SSH key**.
 
-1. **Install Bison (GNU Yacc)**:
-   Make sure Bison is installed:
+---
 
-   ```bash
-   sudo apt-get install bison  # On Ubuntu/Debian
-   sudo yum install bison      # On CentOS/RedHat
-   ```
+## 🛠️ Step 2: Install Required Tools (One-time Setup)
 
-2. **Generate C Code**:
-   Use `bison` to process the `.y` file:
+Run these commands on the server:
 
-   ```bash
-   bison -d your_file.y
-   ```
+```bash
+sudo apt update
+sudo apt install flex bison build-essential -y
+```
+````
 
-3. **Compile the C Code**:
-   This will generate `y.tab.c` and `y.tab.h`. Compile the C code with `gcc`:
+---
 
-   ```bash
-   gcc y.tab.c -o your_program -ly
-   ```
+## 📁 Step 3: Create Your Lex and Yacc Files
 
-4. **Run the Program**:
-   Finally, you can run the program:
-   ```bash
-   ./your_program
-   ```
+Use any command-line text editor (like `nano` or `vim`):
 
-### For `.c` files (C Code):
+```bash
+nano lex.l
+```
 
-1. **Compile the C File**:
-   If you have a C file (`your_file.c`), use `gcc` to compile it:
+Paste your Lex code and save (`Ctrl + O`, then `Enter`, then `Ctrl + X` to exit).
 
-   ```bash
-   gcc your_file.c -o your_program
-   ```
+```bash
+nano parser.y
+```
 
-2. **Run the Program**:
-   After compiling, run the executable:
-   ```bash
-   ./your_program
-   ```
+Paste your Yacc code and save similarly.
 
-### General Notes:
+---
 
-- You need to have the necessary tools installed (`gcc`, `flex`, `bison`, etc.).
-- Ensure you have the correct permissions to run the files. If you encounter permission errors, you can use `chmod` to grant execution rights:
-  ```bash
-  chmod +x your_program
-  ```
+## 🧪 Step 4: Compile and Run the Program
 
-Let me know if you need help with any specific file!
+### 1. Generate Parser from `.y` (Yacc/Bison):
+
+```bash
+bison -d parser.y
+```
+
+This creates:
+
+- `y.tab.c` (parser code)
+- `y.tab.h` (token definitions)
+
+### 2. Generate Scanner from `.l` (Lex/Flex):
+
+```bash
+flex lex.l
+```
+
+This creates:
+
+- `lex.yy.c` (scanner code)
+
+### 3. Compile Both Together:
+
+```bash
+gcc -o parser y.tab.c lex.yy.c -lfl
+```
+
+### 4. Run the Program:
+
+```bash
+./parser
+```
+
+Then type your inputs (e.g., math expressions or variable assignments):
+
+```
+a = 5
+b = 3
+a + b * 2
+```
+
+Use `Ctrl + D` to exit input (if required).
+
+---
+
+## 📌 Notes
+
+- Make sure tokens in `.l` match those declared in `.y`.
+- If you reference `yytext` in `.l`, you may need to convert characters to indices (e.g., `yytext[0] - 'a'`).
+
+---
+
+## 🧼 Cleanup
+
+To delete generated files:
+
+```bash
+rm y.tab.* lex.yy.c parser
+```
+
+---
+
+## ✅ Example File Names
+
+- `lex.l` → Lex rules (tokens)
+- `parser.y` → Yacc grammar (rules)
+
+You can change the names, but remember to adjust commands accordingly.
+
+---
+
+Happy parsing! 🎉
+
+```
+
+---
+
+Let me know if you want me to include a working example `.l` and `.y` pair with this!
+
+
+gcc -o lexer lex.yy.c -lfl
+
+
+```
